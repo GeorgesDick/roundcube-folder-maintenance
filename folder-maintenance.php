@@ -59,7 +59,9 @@ class folder_maintenance extends rcube_plugin
   function folder_maintenance_html_folder_maintenance_message($args){
     $rcmail = rcmail::get_instance();
     $le_user = $rcmail->user->data['username'];
-    $content = "Coucou a " . $le_user . " dans le nouveau plugin.<br />Liste :<br />";
+    $content = 'Coucou a ' . $le_user . ' dans le nouveau plugin.<br />Liste :<br />';
+    $page_size = $rcmail->config->get ('pagesize');
+    $content .= 'La page fait ' . $page_size . ' messages<br />';
     $rcmail->imap_connect();
     $list_boxes = $rcmail->imap->list_mailboxes();
     $today = time();
@@ -67,24 +69,20 @@ class folder_maintenance extends rcube_plugin
     foreach ($list_boxes as $folder) {
       $nb_msg = $rcmail->imap->messagecount($folder);
       $content .= $folder . ':' . $nb_msg . ' messages<br />';
-      $headers = $rcmail->imap->list_headers($folder);
-      $i = $nb_old_msg = 0;
-      foreach ($headers as $le_header) {
-        if (($nb_msg > 0) && ($nb_msg < 20)) {
-          if ($le_header->timestamp < $ninetydays) {
-            $content .= '<font color="red">';
-            }
-          $content .= date ('o/m/d H:i', $le_header->timestamp) . '<hr />';
-          if ($le_header->timestamp < $ninetydays) {
-            $content .= '</font>';
+      if ($nb_msg > 0) {
+        $i = $nb_old_msg = 0;
+        for ($num_page = $msg_cour = 0; $msg_cour < $nb_msg; $msg_cour += $page_size, $num_page++) {
+          $headers = $rcmail->imap->list_headers($folder,$num_page);
+          foreach ($headers as $le_header) {
+              if ($le_header->timestamp < $ninetydays) {
+	      $nb_old_msg++;
+	      }
+            $i++;
             }
           }
-          if ($le_header->timestamp < $ninetydays) {
-	  $nb_old_msg++;
-	  }
-        $i++;
+        $content .= 'Total : ' . $i . ' dont ' . $nb_old_msg . ' vieux';
         }
-      $content .= 'Total : ' . $i . ' dont ' . $nb_old_msg . ' vieux<hr />';
+      $content .= '<hr />';
       }
     $folder_maintenance  = '<fieldset><legend>' . $this->gettext('folder_maintenance') . '</legend>';
     $folder_maintenance .= $content;
