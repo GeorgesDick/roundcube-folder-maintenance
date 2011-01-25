@@ -1,0 +1,58 @@
+#summary
+{
+  position: absolute;
+  top: 85px;
+  left: 20px;
+  bottom: 20px;
+  right: 20px;
+  min-width: 700px;
+  overflow: auto;
+  display: none;
+}
+
+#summary legend
+{
+  font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  font-weight: bold;
+  font-style: italic;
+  color: #333333;
+}
+
+#summary td
+{
+  border-bottom: 1px solid #EBEBEB;
+}
+
+a.summaryaction,
+td.summaryaction
+{
+  font-size: 11px;
+  font-style: italic;
+}
+
+a.summaryok
+{
+  color: green;
+}
+
+a.summarywarning
+{
+  color: red;
+}
+
+table.quota
+{
+  /*border-style: dotted;*/
+  width: 100%;
+}
+
+td.quotafree
+{
+  background-color: green;
+}
+
+td.quotafull
+{
+  background-color:red;
+}
