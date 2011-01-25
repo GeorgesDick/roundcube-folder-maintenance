@@ -1,0 +1,58 @@
+#folder_maintenance
+{
+  position: absolute;
+  top: 65px;
+  left: 20px;
+  bottom: 20px;
+  right: 20px;
+  min-width: 700px;
+  overflow: auto;
+  display: none;
+}
+
+#folder_maintenance legend
+{
+  font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  font-weight: bold;
+  font-style: italic;
+  color: #333333;
+}
+
+#folder_maintenance td
+{
+  border-bottom: 1px solid #EBEBEB;
+}
+
+a.folder_maintenanceaction,
+td.folder_maintenanceaction
+{
+  font-size: 11px;
+  font-style: italic;
+}
+
+a.folder_maintenanceok
+{
+  color: green;
+}
+
+a.folder_maintenancewarning
+{
+  color: red;
+}
+
+table.quota
+{
+  /*border-style: dotted;*/
+  width: 100%;
+}
+
+td.quotafree
+{
+  background-color: green;
+}
+
+td.quotafull
+{
+  background-color:red;
+}

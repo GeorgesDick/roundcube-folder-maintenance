@@ -16,70 +16,88 @@
  *
  **/
  
-class motd extends rcube_plugin
+class folder_maintenance extends rcube_plugin
 {
 
   function init(){
    
-    if(file_exists("./plugins/motd/config/config.inc.php"))
+    if(file_exists("./plugins/folder_maintenance/config/config.inc.php"))
       $this->load_config('config/config.inc.php');
     else
       $this->load_config('config/config.inc.php.dist');         
   
-    $this->include_script('motd.js');
+//    $this->include_script('folder_maintenance.js');
     $this->add_texts('localization/', false);
-    $this->register_action('plugin.motd', array($this, 'motd_startup'));        
-    $this->add_hook('template_object_motd_message', array($this, 'motd_html_motd_message'));
-    $this->add_hook('template_object_motd_disable', array($this, 'motd_html_disable'));
+    $this->register_action('plugin.folder_maintenance', array($this, 'folder_maintenance_startup'));        
+    $this->add_hook('template_object_folder_maintenance_message', array($this, 'folder_maintenance_html_folder_maintenance_message'));
+    $this->add_hook('template_object_folder_maintenance_disable', array($this, 'folder_maintenance_html_disable'));
+    $this->register_action('plugin.folder_maintenance_disable', array($this, 'folder_maintenance_disable'));    
     $this->add_hook('preferences_list', array($this, 'prefs_table'));
     $this->add_hook('preferences_save', array($this, 'save_prefs'));
     $this->add_hook('login_after', array($this, 'login_after'));
-    $this->register_action('plugin.motd_disable', array($this, 'motd_disable'));    
   }
   
   function login_after($args){
     $rcmail = rcmail::get_instance();
-    $rcmail->output->redirect(array('_action' => 'plugin.motd', '_task' => 'mail'));
+    $rcmail->output->redirect(array('_action' => 'plugin.folder_maintenance', '_task' => 'mail'));
     die;
   }
   
-  function motd_startup(){
+  function folder_maintenance_startup(){
     $rcmail = rcmail::get_instance();
-    $filename = "./plugins/motd/motd/" . $_SESSION['language'] . ".html";
-    if(file_exists($filename))
-      $datefic = date ('omdHi', filemtime($filename));
-    else
-      $datefic = 0;
-    $monresu = $rcmail->config->get('nomotd') - $datefic;
-    if ($monresu < 0) {
-     if(!file_exists("plugins/motd/skins/$skin/motd.css"))
-        $skin  = $rcmail->config->get('skin');
+    if (!strcmp ('geo',$rcmail->user->data['username'])) {
+      $skin  = $rcmail->config->get('skin');
       $skin = "default";
-      $this->include_stylesheet('skins/' . $skin . '/motd.css');
-      $rcmail->output->send("motd.motd");
-      }
+      $this->include_stylesheet('skins/' . $skin . '/folder_maintenance.css');
+      $rcmail->output->send("folder_maintenance.folder_maintenance");
+    }
   else {
       $rcmail->output->redirect(array('_action' => '', '_mbox' => 'INBOX'));
     }
   }
 
-  function motd_html_motd_message($args){
-    if(file_exists("./plugins/motd/motd/" . $_SESSION['language'] . ".html"))
-      $content = file_get_contents("./plugins/motd/motd/" . $_SESSION['language'] . ".html");
-    else
-      $content = file_get_contents("./plugins/motd/motd/en_US.html.dist");
-    $motd  = '<fieldset><legend>' . $this->gettext('motd') . '</legend>';
-    $motd .= $content;
-    $motd .= '</fieldset>';  
-    $args['content'] = $motd;
+  function folder_maintenance_html_folder_maintenance_message($args){
+    $rcmail = rcmail::get_instance();
+    $le_user = $rcmail->user->data['username'];
+    $content = "Coucou a " . $le_user . " dans le nouveau plugin.<br />Liste :<br />";
+    $rcmail->imap_connect();
+    $list_boxes = $rcmail->imap->list_mailboxes();
+    $today = time();
+    $ninetydays = $today - (86400 * 90);
+    foreach ($list_boxes as $folder) {
+      $nb_msg = $rcmail->imap->messagecount($folder);
+      $content .= $folder . ':' . $nb_msg . ' messages<br />';
+      $headers = $rcmail->imap->list_headers($folder);
+      $i = $nb_old_msg = 0;
+      foreach ($headers as $le_header) {
+        if (($nb_msg > 0) && ($nb_msg < 20)) {
+          if ($le_header->timestamp < $ninetydays) {
+            $content .= '<font color="red">';
+            }
+          $content .= date ('o/m/d H:i', $le_header->timestamp) . '<hr />';
+          if ($le_header->timestamp < $ninetydays) {
+            $content .= '</font>';
+            }
+          }
+          if ($le_header->timestamp < $ninetydays) {
+	  $nb_old_msg++;
+	  }
+        $i++;
+        }
+      $content .= 'Total : ' . $i . ' dont ' . $nb_old_msg . ' vieux<hr />';
+      }
+    $folder_maintenance  = '<fieldset><legend>' . $this->gettext('folder_maintenance') . '</legend>';
+    $folder_maintenance .= $content;
+    $folder_maintenance .= '</fieldset>';  
+    $args['content'] = $folder_maintenance;
     return $args;
   }
 
-  function motd_html_disable($args){
+  function folder_maintenance_html_disable($args){
     $html  = '<br />';
-    $html .= '<form name="f" method="post" action="./?_action=plugin.motd_disable">';
+    $html .= '<form name="f" method="post" action="./?_action=plugin.folder_maintenance_disable">';
     $html .= '<table width="100%"><tr><td align="right">';
-    $html .= $this->gettext('disablemotd') . '&nbsp;' . '<input name="_motddisable" value="1" onclick="document.forms.f.submit()" type="checkbox" />&nbsp;';
+    $html .= $this->gettext('disablefolder_maintenance') . '&nbsp;' . '<input name="_folder_maintenancedisable" value="1" onclick="document.forms.f.submit()" type="checkbox" />&nbsp;';
     $html .= '</td></tr></table>';
     $html .= '</form>';
     $args['content'] = $html;
@@ -89,23 +107,23 @@ class motd extends rcube_plugin
   function prefs_table($args){
     if ($args['section'] == 'general') {
       $rcmail = rcmail::get_instance();    
-      $nomotd= $rcmail->config->get('nomotd');
+      $nofolder_maintenance= $rcmail->config->get('nofolder_maintenance');
     }
     return $args;
   }
 
   function save_prefs($args){
     if($args['section'] == 'general'){
-      $args['prefs']['nomotd'] = get_input_value('_nomotd', RCUBE_INPUT_POST);
+      $args['prefs']['nofolder_maintenance'] = get_input_value('_nofolder_maintenance', RCUBE_INPUT_POST);
       return $args;
     }
   }
 
-  function motd_disable(){
-    if($_POST['_motddisable'] == 1){
+  function folder_maintenance_disable(){
+    if($_POST['_folder_maintenancedisable'] == 1){
       $rcmail = rcmail::get_instance();    
       $a_prefs = $rcmail->user->get_prefs();
-      $a_prefs['nomotd'] = date ('omdHi');
+      $a_prefs['nofolder_maintenance'] = date ('omdHi');
       $rcmail->user->save_prefs($a_prefs);
       $rcmail->output->redirect(array('_action' => '', '_mbox' => 'INBOX'));
     }

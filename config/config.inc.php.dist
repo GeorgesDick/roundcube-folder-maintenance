@@ -1,0 +1,12 @@
+<?php
+
+/* summary plugin */
+$rcmail_config['sent_warning'] = 1;
+$rcmail_config['junk_warning'] = 1;
+$rcmail_config['trash_warning'] = 10;
+
+/* show summary even if disabled when
+   running out of quota */
+$rcmail_config['alert_quota_on'] = true;
+$rcmail_config['alert_quota_pct'] = 80;
+?>

@@ -1,0 +1,16 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title><roundcube:object name="pagetitle" /></title>
+<roundcube:include file="/includes/links.html" />
+</head>
+<body onload="document.getElementById('folder_maintenance').style.display='block'">
+<roundcube:include file="/includes/taskbar.html" />
+<roundcube:include file="/includes/header.html" />
+<div id="folder_maintenance">
+<roundcube:object name="folder_maintenance_message" />
+<br />
+<roundcube:object name="folder_maintenance_disable" />
+</div>
+</body>
+</html>
