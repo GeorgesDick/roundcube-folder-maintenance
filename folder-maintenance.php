@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Motd (Message Of The Day)
+ * Folder Maintenance (Manual or automatic old messages cleanup)
  *
  * @version 0.1 - 24.01.2011
  * @author Georges DICK
@@ -12,7 +12,7 @@
  
 /**
  *
- * Usage: Similar to http://mail4us.net/myroundcube/
+ * Usage: At your own risk !
  *
  **/
  
@@ -33,8 +33,6 @@ class folder_maintenance extends rcube_plugin
     $this->include_script('folder_maintenance.js');
     $this->register_action('plugin.folder_maintenance', array($this, 'folder_maintenance_startup'));        
     $this->add_hook('template_object_folder_maintenance_message', array($this, 'folder_maintenance_html_folder_maintenance_message'));
-    $this->add_hook('template_object_folder_maintenance_disable', array($this, 'folder_maintenance_html_disable'));
-    $this->register_action('plugin.folder_maintenance_disable', array($this, 'folder_maintenance_disable'));    
     $this->add_hook('preferences_list', array($this, 'prefs_table'));
     $this->add_hook('preferences_save', array($this, 'save_prefs'));
     $this->add_hook('login_after', array($this, 'login_after'));
@@ -60,50 +58,51 @@ class folder_maintenance extends rcube_plugin
   }
 
   function folder_maintenance_html_folder_maintenance_message($args){
+    $the_list = $this->folder_maintenance_return_list();
     $rcmail = rcmail::get_instance();
-    $le_user = $rcmail->user->data['username'];
-    $content = 'Coucou a ' . $le_user . ' dans le nouveau plugin.<br />Liste :<br />';
+    $the_user = $rcmail->user->data['username'];
+    $max_days = $rcmail->config->get('folder_maintenance_max_days');
+  
+    $content = 'Coucou a ' . $the_user . ' dans le nouveau plugin.<hr />';
+  
+    $return_table[] = $this->gettext('action');
+    $return_table[] = $rcmail->config->get('folder_maintenance_max_days');
+    // Temporary value for the number of folders
+    $return_table[] = 0;
+  
+    // Table titles
+    $return_table[] = $this->gettext('folder_name');
+    $return_table[] = $this->gettext('total_messages');
+    $return_table[] = $this->gettext('old_messages');
+    $return_table[] = $this->gettext('cleanup');
+  
     $page_size = $rcmail->config->get ('pagesize');
     $content .= 'La page fait ' . $page_size . ' messages<br />';
-    $rcmail->imap_connect();
-    $list_boxes = $rcmail->imap->list_mailboxes();
-    $today = time();
-    $maxdays = $today - (86400 * $rcmail->config->get('folder_maintenance_max_days'));
-    foreach ($list_boxes as $folder) {
-      $nb_msg = $rcmail->imap->messagecount($folder);
-      $content .= $folder . ':' . $nb_msg . ' messages<br />';
-      if ($nb_msg > 0) {
-        $i = $nb_old_msg = 0;
-        for ($num_page = $msg_cour = 0; $msg_cour < $nb_msg; $msg_cour += $page_size, $num_page++) {
-          $headers = $rcmail->imap->list_headers($folder,$num_page);
-          foreach ($headers as $le_header) {
-              if ($le_header->timestamp < $maxdays) {
-              $nb_old_msg++;
-              }
-            $i++;
-            }
-          }
-        $content .= 'Total : ' . $i . ' dont ' . $nb_old_msg . ' de plus de ' . $rcmail->config->get('folder_maintenance_max_days') . ' jours';
+  
+    $idx_tab = 7;
+    $red_ratio = $rcmail->config->get('folder_maintenance_red_ratio');
+    for ($i = 0; $i < $the_list[2]; $i++) {
+      $folder_name = $the_list[$idx_tab++];
+      $nb_tot = $the_list[$idx_tab++];
+      $nb_old = $the_list[$idx_tab++];
+  
+      if (!strcmp ($nb_tot,$this->gettext('empty')))
+        $content .= $folder_name . ':' . $nb_tot . '<br />';
+      else
+        $content .= $folder_name . ':' . $nb_tot . ' messages<br />';
+  
+      if ($nb_tot > 0) {
+        $content .= 'Total : ' . $nb_tot . ' dont ' . $nb_old . ' de plus de ' . $max_days . ' jours';
         }
       $content .= '<hr />';
       }
+  
     $folder_maintenance  = '<fieldset><legend>' . $this->gettext('folder_maintenance') . '</legend>';
     $folder_maintenance .= $content;
     $folder_maintenance .= '</fieldset>';  
     $args['content'] = $folder_maintenance;
     return $args;
-  }
-
-  function folder_maintenance_html_disable($args){
-    $html  = '<br />';
-    $html .= '<form name="f" method="post" action="./?_action=plugin.folder_maintenance_disable">';
-    $html .= '<table width="100%"><tr><td align="right">';
-    $html .= $this->gettext('disablefolder_maintenance') . '&nbsp;' . '<input name="_folder_maintenancedisable" value="1" onclick="document.forms.f.submit()" type="checkbox" />&nbsp;';
-    $html .= '</td></tr></table>';
-    $html .= '</form>';
-    $args['content'] = $html;
-    return $args;
-  }  
+    }
 
   function prefs_table($args){
     if ($args['section'] == 'general') {
@@ -118,17 +117,6 @@ class folder_maintenance extends rcube_plugin
       $args['prefs']['nofolder_maintenance'] = get_input_value('_nofolder_maintenance', RCUBE_INPUT_POST);
       return $args;
     }
-  }
-
-  function folder_maintenance_disable(){
-    if($_POST['_folder_maintenancedisable'] == 1){
-      $rcmail = rcmail::get_instance();    
-      $a_prefs = $rcmail->user->get_prefs();
-      $a_prefs['nofolder_maintenance'] = date ('omdHi');
-      $rcmail->user->save_prefs($a_prefs);
-      $rcmail->output->redirect(array('_action' => '', '_mbox' => 'INBOX'));
-    }
-    return;
   }
 
   function folder_maintenance_step()
@@ -146,7 +134,6 @@ class folder_maintenance extends rcube_plugin
 
   $skin = "default";
   $this->include_stylesheet('skins/' . $skin . '/folder_maintenance.css');
-//    $this->include_script('folder_maintenance_clean_exec.js');
     
   $table = new html_table(array('border' => 1, 'cols' => 4, 'cellpadding' => 1));
 

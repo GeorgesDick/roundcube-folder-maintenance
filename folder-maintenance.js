@@ -14,14 +14,7 @@ if (window.rcmail) {
 
 }
 
-function check_uncheck (box_name) {
-//alert ("check_uncheck de " + box_name);
-//rcmail.http_post('plugin.archive', '_uid='+uids+'&_mbox='+urlencode(rcmail.env.mailbox), lock);
-}
-
 function val_form () {
-//rcmail.http_post('plugin.archive', '_uid='+uids+'&_mbox='+urlencode(rcmail.env.mailbox), lock);
-//document.forms.folder_maintenance_clean.submit();
 param_string = '';
 for (i = 0; ; i++) {
   if (document.forms.folder_maintenance_clean.elements[i].id == 'submit')
@@ -31,25 +24,10 @@ for (i = 0; ; i++) {
     }
   }
 rcmail.addEventListener('plugin.folder_maintenance_callback', folder_maintenance_callback);
-alert ("AV post param_string : " + param_string);
 rcmail.http_post('plugin.folder_maintenance_clean', param_string);
 }
 
 function folder_maintenance_callback (response)
 {
-alert ('appel de callback');
 $('#mainscreen').html(response.form);
-/*
-  // Some init values
-  button_name = my_list[0];
-  max_days = my_list[1];
-
-  // Table titles
-  folder_name = my_list[2];
-  total_messages = my_list[3];
-  old_messages = my_list[4];
-  cleanup = my_list[5];
-  
-alert ('max_days : ' + max_days);
-*/
 }
