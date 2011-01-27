@@ -238,17 +238,54 @@ write_log('folder_maintenance', 'Liste de message uid à virer : ' . $msg_delete_
   $list_boxes = $rcmail->imap->list_mailboxes();
   $today = time();
   $maxdays = $today - (86400 * $rcmail->config->get('folder_maintenance_max_days'));
+  $max_iterations = $rcmail->config->get('folder_maintenance_max_iterations');
   $folder_number = 0;
+  $tot_mess = 0;
   foreach ($list_boxes as $folder) {
+    // Dirty hack because of PHP 5.3 memory leak
+    if (($max_iterations) && ($tot_mess > $max_iterations)) break;
+
     $nb_msg = $rcmail->imap->messagecount($folder);
     $return_table[] = $folder;
+
+/* !!! */
+    if ($nb_msg > 0) {
+      $i = $nb_old_msg = 0;
+      $message_list = $rcmail->imap->message_index($folder);
+      foreach ($message_list as $message_id) {
+        // Dirty hack because of PHP 5.3 memory leak
+        if (($max_iterations) && ($tot_mess > $max_iterations)) break;
+
+        $i++;
+        $le_header = $rcmail->imap->get_headers($message_id, $folder);
+        if ($le_header->timestamp < $maxdays) {
+          $nb_old_msg++;
+	// Dirty hack to free some memory
+	$le_header = NULL;
+	unset ($le_header);
+	// For some strange reasons, this log helps PHP 5.2 to manage memory
+	// DON'T REMOVE IT !!!!!
+	if (($tot_mess++ % 10) == 0) // !!!
+	  write_log('folder_maintenance', 'Message : ' . $tot_mess); // !!!
+        }
+      }
+    $return_table[] = $i;
+    $return_table[] = $nb_old_msg;
+    }
+  else {
+    $return_table[] = $this->gettext('empty');
+    $return_table[] = $content = $this->gettext('none');
+    }
+/* !!! */
+
+/* !!!
     if ($nb_msg > 0) {
       $i = $nb_old_msg = 0;
       for ($num_page = $msg_cour = 0; $msg_cour < $nb_msg; $msg_cour += $page_size, $num_page++) {
         $headers = $rcmail->imap->list_headers($folder,$num_page);
         foreach ($headers as $le_header) {
             if ($le_header->timestamp < $maxdays) {
-            $nb_old_msg++;
+              $nb_old_msg++;
             }
           $i++;
           }
@@ -260,6 +297,8 @@ write_log('folder_maintenance', 'Liste de message uid à virer : ' . $msg_delete_
       $return_table[] = $this->gettext('empty');
       $return_table[] = $content = $this->gettext('none');
       }
+!!! */
+
     $folder_number++;
 //    if ($folder_number > 4) break; // !!!
     }
