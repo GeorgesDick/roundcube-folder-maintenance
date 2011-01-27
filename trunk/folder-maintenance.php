@@ -149,7 +149,10 @@ class folder_maintenance extends rcube_plugin
     $nb_old = $the_list[$idx_tab++];
     $table->add('text', Q($folder_name));
     $table->add('text', Q($nb_tot));
-    if (($nb_old * $red_ratio) > $nb_tot)
+    $page_size = $rcmail->config->get ('pagesize');
+    if ($nb_old > $page_size)
+      $table->add('oversize', Q('> ' . $page_size));
+    else if (($nb_old * $red_ratio) > $nb_tot)
       $table->add('quotafull', Q($nb_old));
     else
       $table->add('text', Q($nb_old));
@@ -194,8 +197,30 @@ class folder_maintenance extends rcube_plugin
   $rcmail->imap_connect();
   $nb_msg = $rcmail->imap->messagecount($folder_name);
   if ($nb_msg <= 0) return 0;
-
   $nb_old_msg = 0;
+
+  $message_list = $rcmail->imap->message_index($folder_name);
+  foreach ($message_list as $message_id) {
+
+    $i++;
+    $le_header = $rcmail->imap->get_headers($message_id, $folder_name);
+    if ($le_header->timestamp < $maxdays) {
+      $nb_old_msg++;
+      if ($nb_old_msg != 1) $msg_delete_list .= ',';
+        $msg_delete_list .= $le_header->uid;
+      if ($nb_old_msg < 5)
+        write_log('folder_maintenance', 'On vire le message uid : ' . $le_header->uid . ' Sujet : ' . $le_header->subject); // !!!
+      }
+    // Dirty hack to free some memory
+    $le_header = NULL;
+    unset ($le_header);
+    // For some strange reasons, this log helps PHP 5.2 to manage memory
+    // DON'T REMOVE IT !!!!!
+    if (($tot_mess++ % 10) == 0) // !!!
+      write_log('folder_maintenance', 'Message : ' . $tot_mess); // !!!
+    }
+
+/* !!!
   for ($num_page = $msg_cour = 0; $msg_cour < $nb_msg; $msg_cour += $page_size, $num_page++) {
     $headers = $rcmail->imap->list_headers($folder_name,$num_page);
     $msg_delete_list = '';
@@ -209,6 +234,8 @@ write_log('folder_maintenance', 'On vire le message uid : ' . $le_header->uid . 
         }
       }
     }
+!!! */
+
 write_log('folder_maintenance', 'Liste de message uid à virer : ' . $msg_delete_list); // !!!
   return $nb_old_msg;
   }
@@ -238,57 +265,24 @@ write_log('folder_maintenance', 'Liste de message uid à virer : ' . $msg_delete_
   $list_boxes = $rcmail->imap->list_mailboxes();
   $today = time();
   $maxdays = $today - (86400 * $rcmail->config->get('folder_maintenance_max_days'));
-  $max_iterations = $rcmail->config->get('folder_maintenance_max_iterations');
   $folder_number = 0;
   $tot_mess = 0;
   foreach ($list_boxes as $folder) {
-    // Dirty hack because of PHP 5.3 memory leak
-    if (($max_iterations) && ($tot_mess > $max_iterations)) break;
-
     $nb_msg = $rcmail->imap->messagecount($folder);
+    $rcmail->imap->set_mailbox($folder);
     $return_table[] = $folder;
 
-/* !!! */
     if ($nb_msg > 0) {
       $i = $nb_old_msg = 0;
-      $message_list = $rcmail->imap->message_index($folder);
+      $message_list = $rcmail->imap->message_index($folder, 'Date:*', 'ASC');
       foreach ($message_list as $message_id) {
-        // Dirty hack because of PHP 5.3 memory leak
-        if (($max_iterations) && ($tot_mess > $max_iterations)) break;
-
-        $i++;
-        $le_header = $rcmail->imap->get_headers($message_id, $folder);
-        if ($le_header->timestamp < $maxdays) {
-          $nb_old_msg++;
-	// Dirty hack to free some memory
-	$le_header = NULL;
-	unset ($le_header);
-	// For some strange reasons, this log helps PHP 5.2 to manage memory
-	// DON'T REMOVE IT !!!!!
-	if (($tot_mess++ % 10) == 0) // !!!
-	  write_log('folder_maintenance', 'Message : ' . $tot_mess); // !!!
+        if ($i++ > $page_size) break;
+      $message_buf = new rcube_message ($rcmail->imap->get_uid($message_id,$folder));
+      if ($message_buf->get_header('timestamp') < $maxdays) {
+        $nb_old_msg++;
         }
-      }
-    $return_table[] = $i;
-    $return_table[] = $nb_old_msg;
-    }
-  else {
-    $return_table[] = $this->gettext('empty');
-    $return_table[] = $content = $this->gettext('none');
-    }
-/* !!! */
-
-/* !!!
-    if ($nb_msg > 0) {
-      $i = $nb_old_msg = 0;
-      for ($num_page = $msg_cour = 0; $msg_cour < $nb_msg; $msg_cour += $page_size, $num_page++) {
-        $headers = $rcmail->imap->list_headers($folder,$num_page);
-        foreach ($headers as $le_header) {
-            if ($le_header->timestamp < $maxdays) {
-              $nb_old_msg++;
-            }
-          $i++;
-          }
+//      if (($tot_mess++ % 10) == 0) // !!!
+//        write_log('folder_maintenance', 'Message : ' . $tot_mess . ' uid ' . $rcmail->imap->get_uid($message_id,$folder) . ' ts : ' . $message_buf->get_header('timestamp') . ' Sujet : ' . $message_buf->get_header('subject')); // !!!
         }
       $return_table[] = $i;
       $return_table[] = $nb_old_msg;
@@ -297,10 +291,8 @@ write_log('folder_maintenance', 'Liste de message uid à virer : ' . $msg_delete_
       $return_table[] = $this->gettext('empty');
       $return_table[] = $content = $this->gettext('none');
       }
-!!! */
-
     $folder_number++;
-//    if ($folder_number > 4) break; // !!!
+//    if ($folder_number > 3) break; // !!!
     }
     $return_table[2] = $folder_number;
   return $return_table;
