@@ -176,11 +176,41 @@ class folder_maintenance extends rcube_plugin
     $checkbox_value = get_input_value($checkbox_name, RCUBE_INPUT_POST);
     if (!strcmp ($checkbox_value,'clean')) {
       write_log('folder_maintenance', 'On doit nettoyer ' . $folder); // !!!
+      $this->folder_maintenance_clean_folder ($folder);
       }
     }
   $return_buffer = $this->folder_maintenance_html();
   $rcmail->output->command('plugin.folder_maintenance_callback', array('form' => $return_buffer));
   return;
+  }
+
+  function folder_maintenance_clean_folder ($folder_name) {
+  write_log('folder_maintenance', 'Nettoyage de ' . $folder_name); // !!!
+  $rcmail = rcmail::get_instance();
+  $nb_days = $rcmail->config->get('folder_maintenance_max_days');
+  $today = time();
+  $maxdays = $today - (86400 * $rcmail->config->get('folder_maintenance_max_days'));
+  $page_size = $rcmail->config->get ('pagesize');
+  $rcmail->imap_connect();
+  $nb_msg = $rcmail->imap->messagecount($folder_name);
+  if ($nb_msg <= 0) return 0;
+
+  $nb_old_msg = 0;
+  for ($num_page = $msg_cour = 0; $msg_cour < $nb_msg; $msg_cour += $page_size, $num_page++) {
+    $headers = $rcmail->imap->list_headers($folder_name,$num_page);
+    $msg_delete_list = '';
+    foreach ($headers as $le_header) {
+        if ($le_header->timestamp < $maxdays) {
+        $nb_old_msg++;
+	if ($nb_old_msg != 1) $msg_delete_list .= ',';
+	$msg_delete_list .= $le_header->uid;
+if ($nb_old_msg < 5)
+write_log('folder_maintenance', 'On vire le message uid : ' . $le_header->uid . ' Sujet : ' . $le_header->subject); // !!!
+        }
+      }
+    }
+write_log('folder_maintenance', 'Liste de message uid à virer : ' . $msg_delete_list); // !!!
+  return $nb_old_msg;
   }
 
   function folder_maintenance_return_list()
@@ -208,7 +238,6 @@ class folder_maintenance extends rcube_plugin
   $list_boxes = $rcmail->imap->list_mailboxes();
   $today = time();
   $maxdays = $today - (86400 * $rcmail->config->get('folder_maintenance_max_days'));
-$rac = 0; // !!!
   $folder_number = 0;
   foreach ($list_boxes as $folder) {
     $nb_msg = $rcmail->imap->messagecount($folder);
@@ -232,7 +261,7 @@ $rac = 0; // !!!
       $return_table[] = $content = $this->gettext('none');
       }
     $folder_number++;
-    if ($rac++ > 3) break; // !!!
+//    if ($folder_number > 4) break; // !!!
     }
     $return_table[2] = $folder_number;
   return $return_table;
