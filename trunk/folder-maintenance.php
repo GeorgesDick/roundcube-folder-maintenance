@@ -203,17 +203,16 @@ class folder_maintenance extends rcube_plugin
   $message_list = $rcmail->imap->message_index($folder_name, 'Date:*', 'ASC');
   foreach ($message_list as $message_id) {
     if ($i++ > $page_size) break;
-    $msg_uid = $rcmail->imap->get_uid($message_id,$folder);
-    $message_buf = new rcube_message ($msg_uid);
-    if ($message_buf->get_header('timestamp') < $maxdays) {
+    $le_header = $rcmail->imap->get_headers($message_id, $folder_name, false);
+    if ($le_header->timestamp < $maxdays) {
       $nb_old_msg++;
+      $msg_uid = $rcmail->imap->get_uid($message_id,$folder_name);
       if ($nb_old_msg != 1) $msg_delete_list .= ',';
         $msg_delete_list .= $msg_uid;
-      if ($nb_old_msg < 5)
-        write_log('folder_maintenance', 'On vire le message uid : ' . $msg_uid . ' Sujet : ' . $message_buf->get_header('Subject:')); // !!!
+      if ($nb_old_msg < 10) // !!!
+        write_log('folder_maintenance', 'On vire le message uid : ' . $msg_uid . ' Sujet : ' . $le_header->subject); // !!!
       }
     }
-
 write_log('folder_maintenance', 'Liste de message uid à virer : ' . $msg_delete_list); // !!!
   return $nb_old_msg;
   }
