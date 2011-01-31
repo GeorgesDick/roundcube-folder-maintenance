@@ -1,10 +1,14 @@
 <?php
 
 $labels = array();
-$labels['disablemotd'] = 'Ne plus afficher cette page';
-$labels['motd'] = 'Message du jour';
+$labels['foldermaintenance'] = 'Maintenance';
+$labels['folders_of'] = 'Les dossiers de';
+$labels['folder_name'] = 'Dossier';
+$labels['total_messages'] = 'Messages';
+$labels['old_messages'] = 'Anciens messages';
+$labels['empty'] = 'Vide';
+$labels['cleanup'] = 'Nettoyer';
+$labels['action'] = 'Lancer le nettoyage';
+$labels['none'] = 'Aucun';
 
-$messages = array();
-$messages['quotawarning'] = 'Nettoyez votre boîte SVP, vous approchez de votre quota.';
-$messages['quotafull'] = 'Votre boîte aux lettres a dépassé son quota. Nettoyez votre bote SVP.';
 ?>

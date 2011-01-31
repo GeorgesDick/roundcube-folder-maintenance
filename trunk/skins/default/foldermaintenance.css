@@ -1,4 +1,4 @@
-#folder_maintenance
+#foldermaintenance
 {
   position: absolute;
   top: 65px;
@@ -10,7 +10,7 @@
   display: none;
 }
 
-#folder_maintenance legend
+#foldermaintenance legend
 {
   font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
   font-size: 13px;
@@ -19,24 +19,24 @@
   color: #333333;
 }
 
-#folder_maintenance td
+#foldermaintenance td
 {
   border-bottom: 1px solid #EBEBEB;
 }
 
-a.folder_maintenanceaction,
-td.folder_maintenanceaction
+a.foldermaintenanceaction,
+td.foldermaintenanceaction
 {
   font-size: 11px;
   font-style: italic;
 }
 
-a.folder_maintenanceok
+a.foldermaintenanceok
 {
   color: green;
 }
 
-a.folder_maintenancewarning
+a.foldermaintenancewarning
 {
   color: red;
 }
@@ -47,12 +47,35 @@ table.quota
   width: 100%;
 }
 
-td.quotafree
+td.text
 {
-  background-color: green;
+  text-align: left;
+  border: 1px solid black;
+}
+
+td.number
+{
+  text-align: right;
+  border: 1px solid black;
 }
 
 td.quotafull
 {
-  background-color:red;
+  color:red;
+  text-align: left;
+  border: 1px solid black;
 }
+
+td.oversize
+{
+  background-color:red;
+  text-align: left;
+  border: 1px solid black;
+}
+
+td.button
+{
+  text-align: center;
+  border: 1px solid black;
+}
+
