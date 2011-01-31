@@ -46,15 +46,15 @@ class folder_maintenance extends rcube_plugin
   
   function folder_maintenance_startup(){
     $rcmail = rcmail::get_instance();
-    if (!strcmp ('geo',$rcmail->user->data['username'])) {
-      $skin  = $rcmail->config->get('skin');
-      $skin = "default";
-      $this->include_stylesheet('skins/' . $skin . '/folder_maintenance.css');
-      $rcmail->output->send("folder_maintenance.folder_maintenance");
+    if (strcmp ('geo',$rcmail->user->data['username'])) {// !!!
+      $rcmail->output->redirect(array('_action' => '', '_mbox' => 'INBOX')); // !!!
+      }
+    $folder_list = $rcmail->config->get('folder_maintenance_startup_folders');
+    $folder_array = explode (',', $folder_list);
+    foreach ($folder_array as $folder) {
+      $this->folder_maintenance_clean_folder ($folder);
     }
-  else {
-      $rcmail->output->redirect(array('_action' => '', '_mbox' => 'INBOX'));
-    }
+    $rcmail->output->redirect(array('_action' => '', '_mbox' => 'INBOX'));
   }
 
   function folder_maintenance_html_folder_maintenance_message($args){
@@ -175,15 +175,16 @@ class folder_maintenance extends rcube_plugin
   $list_boxes = $rcmail->imap->list_mailboxes();
   foreach ($list_boxes as $folder) {
     $checkbox_name = '_clean_' . $folder;
-// !!! write_log('folder_maintenance', 'test de la checkbox "' . $checkbox_name . '"');
+// write_log('folder_maintenance', 'test de la checkbox "' . $checkbox_name . '"'); // !!!
     $checkbox_value = get_input_value($checkbox_name, RCUBE_INPUT_POST);
     if (!strcmp ($checkbox_value,'clean')) {
-      write_log('folder_maintenance', 'On doit nettoyer ' . $folder); // !!!
+//      write_log('folder_maintenance', 'On doit nettoyer ' . $folder); // !!!
       $this->folder_maintenance_clean_folder ($folder);
       }
     }
   $return_buffer = $this->folder_maintenance_html();
   $rcmail->output->command('plugin.folder_maintenance_callback', array('form' => $return_buffer));
+  $rcmail->imap->close();
   return;
   }
 
@@ -209,11 +210,21 @@ class folder_maintenance extends rcube_plugin
       $msg_uid = $rcmail->imap->get_uid($message_id,$folder_name);
       if ($nb_old_msg != 1) $msg_delete_list .= ',';
         $msg_delete_list .= $msg_uid;
-      if ($nb_old_msg < 10) // !!!
-        write_log('folder_maintenance', 'On vire le message uid : ' . $msg_uid . ' Sujet : ' . $le_header->subject); // !!!
+//      if ($nb_old_msg < 10) // !!!
+        write_log('folder_maintenance', 'On vire le message id : ' . $message_id . ' uid : ' . $msg_uid . ' Sujet : ' . $le_header->subject); // !!!
       }
     }
-write_log('folder_maintenance', 'Liste de message uid à virer : ' . $msg_delete_list); // !!!
+  if ($nb_old_msg) {
+write_log('folder_maintenance', 'Liste de message uid à virer : "' . $msg_delete_list . '"'); // !!!
+    $delete_result = $rcmail->imap->delete_message($msg_delete_list,$folder_name);
+write_log('folder_maintenance', 'delete_message rend ' . $delete_result); // !!!
+    $rcmail->imap->expunge($folder_name);
+    $rcmail->imap->clear_cache();
+    }
+  else { // !!!
+write_log('folder_maintenance', 'Aucun message à nettoyer'); // !!!
+    } // !!!
+  $rcmail->imap->close();
   return $nb_old_msg;
   }
 
@@ -240,6 +251,7 @@ write_log('folder_maintenance', 'Liste de message uid à virer : ' . $msg_delete_
   // From here, populating the real thing
   $page_size = $rcmail->config->get ('pagesize');
   $rcmail->imap_connect();
+  $rcmail->imap->clear_cache();
   $list_boxes = $rcmail->imap->list_mailboxes();
   $today = time();
   $maxdays = $today - (86400 * $rcmail->config->get('folder_maintenance_max_days'));
@@ -257,22 +269,26 @@ write_log('folder_maintenance', 'Liste de message uid à virer : ' . $msg_delete_
       continue;
       }
     $i = $nb_old_msg = 0;
-    $message_list = $rcmail->imap->message_index($folder);
+    $message_list = $rcmail->imap->message_index($folder, 'Date:*', 'ASC');
     foreach ($message_list as $message_id) {
       if ($i++ > $page_size) break;
-      $le_header = $rcmail->imap->get_headers($message_id, $folder, false);
-// if (!strcmp ($folder,'INBOX')) // !!!
-// write_log('folder_maintenance', 'id ' . $message_id . ' timestamp : ' . $le_header->timestamp); // !!!
-      if ($le_header->timestamp < $maxdays) {
+      $msg_uid = $rcmail->imap->get_uid($message_id,$folder);
+      $le_header = $rcmail->imap->get_headers($message_id, $folder, false, false);
+//if (!strcmp ($folder,'INBOX')) // !!!
+// write_log('folder_maintenance', 'id ' . $message_id . ' uid ' . $msg_uid . ' timestamp : ' . $le_header->timestamp); // !!!
+      if (($msg_uid > 0) && ($le_header->timestamp < $maxdays)) {
 	$nb_old_msg++;
+//if (!strcmp ($folder,'INBOX')) // !!!
+// write_log('folder_maintenance', '================boite ' . $folder . ' old id ' . $message_id . ' uid ' . $msg_uid . ' timestamp : ' . $le_header->timestamp . ' Sujet ' . $le_header->subject); // !!!
         }
       }
-    $return_table[] = $i;
+    $return_table[] = $nb_msg;
     $return_table[] = $nb_old_msg;
 //    if ($folder_number > 3) break; // !!!
     }
 
     $return_table[2] = $folder_number;
+  $rcmail->imap->close();
   return $return_table;
   }
 
