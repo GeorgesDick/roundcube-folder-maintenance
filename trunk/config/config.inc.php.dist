@@ -1,12 +1,8 @@
 <?php
 
-/* summary plugin */
-$rcmail_config['sent_warning'] = 1;
-$rcmail_config['junk_warning'] = 1;
-$rcmail_config['trash_warning'] = 10;
+/* foldermaintenance plugin */
+$rcmail_config['foldermaintenance_max_days'] = 120;
+$rcmail_config['foldermaintenance_red_ratio'] = 4;
 
-/* show summary even if disabled when
-   running out of quota */
-$rcmail_config['alert_quota_on'] = true;
-$rcmail_config['alert_quota_pct'] = 80;
+$rcmail_config['foldermaintenance_startup_folders'] = "Trash,Sent";
 ?>
