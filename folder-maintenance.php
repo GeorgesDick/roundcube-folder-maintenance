@@ -3,7 +3,8 @@
 /**
  * Folder Maintenance (Manual or automatic old messages cleanup)
  *
- * @version 0.1 - 24.01.2011
+ * @file folder-maintenance.php
+ * @version 0.9 - 30.01.2011
  * @author Georges DICK
  * @website http://georgesdick.com
  * @licence GNU GPL
@@ -18,7 +19,12 @@
  
 class folder_maintenance extends rcube_plugin
 {
-
+/**
+ *
+ * @author Georges DICK
+ * @brief Init function (action and hooks registrations)
+ *
+ */
   function init(){
    
     if(file_exists("./plugins/folder_maintenance/config/config.inc.php"))
@@ -32,18 +38,30 @@ class folder_maintenance extends rcube_plugin
     $this->register_action('plugin.folder_maintenance_clean', array($this, 'folder_maintenance_clean'));
     $this->include_script('folder_maintenance.js');
     $this->register_action('plugin.folder_maintenance', array($this, 'folder_maintenance_startup'));        
-    $this->add_hook('template_object_folder_maintenance_message', array($this, 'folder_maintenance_html_folder_maintenance_message'));
+//    $this->add_hook('template_object_folder_maintenance_message', array($this, 'folder_maintenance_html_folder_maintenance_message'));
     $this->add_hook('preferences_list', array($this, 'prefs_table'));
     $this->add_hook('preferences_save', array($this, 'save_prefs'));
     $this->add_hook('login_after', array($this, 'login_after'));
   }
   
+ /**
+ *
+ * @author Georges DICK
+ * @brief First function called (after a successfull login)
+ *
+ */
   function login_after($args){
     $rcmail = rcmail::get_instance();
     $rcmail->output->redirect(array('_action' => 'plugin.folder_maintenance', '_task' => 'mail'));
     die;
   }
   
+ /**
+ *
+ * @author Georges DICK
+ * @brief Parameters tab display function
+ *
+ */
   function folder_maintenance_startup(){
     $rcmail = rcmail::get_instance();
     if (strcmp ('geo',$rcmail->user->data['username'])) {// !!!
@@ -57,6 +75,7 @@ class folder_maintenance extends rcube_plugin
     $rcmail->output->redirect(array('_action' => '', '_mbox' => 'INBOX'));
   }
 
+ /* !!!
   function folder_maintenance_html_folder_maintenance_message($args){
     $the_list = $this->folder_maintenance_return_list();
     $rcmail = rcmail::get_instance();
@@ -103,7 +122,14 @@ class folder_maintenance extends rcube_plugin
     $args['content'] = $folder_maintenance;
     return $args;
     }
+!!! */
 
+ /**
+ *
+ * @author Georges DICK
+ * @brief Prefs load function
+ *
+ */
   function prefs_table($args){
     if ($args['section'] == 'general') {
       $rcmail = rcmail::get_instance();    
@@ -112,6 +138,12 @@ class folder_maintenance extends rcube_plugin
     return $args;
   }
 
+ /**
+ *
+ * @author Georges DICK
+ * @brief Prefs save function
+ *
+ */
   function save_prefs($args){
     if($args['section'] == 'general'){
       $args['prefs']['nofolder_maintenance'] = get_input_value('_nofolder_maintenance', RCUBE_INPUT_POST);
@@ -119,12 +151,24 @@ class folder_maintenance extends rcube_plugin
     }
   }
 
+ /**
+ *
+ * @author Georges DICK
+ * @brief Function called by a click on the Maintenance tab (preferences screen)
+ *
+ */
   function folder_maintenance_step()
   {
   $this->register_handler('plugin.body', array($this, 'folder_maintenance_html'));
   rcmail::get_instance()->output->send('plugin');
   }
 
+ /**
+ *
+ * @author Georges DICK
+ * @brief Preferences screen maintenance tab display
+ *
+ */
   function folder_maintenance_html()
   {
   $the_list = $this->folder_maintenance_return_list();
@@ -168,6 +212,12 @@ class folder_maintenance extends rcube_plugin
   return html::tag('h4', null, Q($this->gettext('folders_of') . ' ' . $user->get_username())) . '<form id="folder_maintenance_clean" action="#folder_maintenance_clean">' . $table->show() . '<input type="button" value="'. Q($this->gettext('action')) . '" onClick="javascript:val_form()" id="submit" class="button" /></form>';
   }
 
+ /**
+ *
+ * @author Georges DICK
+ * @brief Preferences screen maintenance tab cleaning function (form analysis and execution)
+ *
+ */
   function folder_maintenance_clean()
   {
   $rcmail = rcmail::get_instance();
@@ -188,6 +238,13 @@ class folder_maintenance extends rcube_plugin
   return;
   }
 
+ /**
+ *
+ * @author Georges DICK
+ * @brief Folder cleaning
+ * @param folder_name The name of the folder to clean
+ *
+ */
   function folder_maintenance_clean_folder ($folder_name) {
   write_log('folder_maintenance', 'Nettoyage de ' . $folder_name); // !!!
   $rcmail = rcmail::get_instance();
@@ -228,6 +285,12 @@ write_log('folder_maintenance', 'Aucun message à nettoyer'); // !!!
   return $nb_old_msg;
   }
 
+ /**
+ *
+ * @author Georges DICK
+ * @brief Folder list construction
+ *
+ */
   function folder_maintenance_return_list()
   {
 // write_log('folder_maintenance', '----------entree dans folder_maintenance_return_list'); // !!!
