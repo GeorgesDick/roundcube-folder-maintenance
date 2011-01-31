@@ -1,5 +1,15 @@
-/* Show folder_maintenance plugin script */
+/**
+ * Javascript functions (links to RoundCube AJAX scripts)
+ *
+ * @file folder-maintenance.js
+ * @version 0.9 - 30.01.2011
+ * @author Georges DICK
+ * @website http://georgesdick.com
+ * @licence GNU GPL
+ *
+ */
 
+// Show folder_maintenance plugin script
 if (window.rcmail) {
   rcmail.addEventListener('init', function(evt) {
     var tab = $('<span>').attr('id', 'settingstabpluginfolder_maintenance').addClass('tablink');
@@ -14,6 +24,12 @@ if (window.rcmail) {
 
 }
 
+/**
+ *
+ * @author Georges DICK
+ * @brief Form validation function
+ *
+ */
 function val_form () {
 param_string = '';
 for (i = 0; ; i++) {
@@ -27,6 +43,12 @@ rcmail.addEventListener('plugin.folder_maintenance_callback', folder_maintenance
 rcmail.http_post('plugin.folder_maintenance_clean', param_string);
 }
 
+/**
+ *
+ * @author Georges DICK
+ * @brief After maintenance tab form validation (page reload)
+ *
+ */
 function folder_maintenance_callback (response)
 {
 $('#mainscreen').html(response.form);
