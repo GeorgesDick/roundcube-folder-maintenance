@@ -181,10 +181,10 @@ class foldermaintenance extends rcube_plugin
     
   $table = new html_table(array('border' => 1, 'cols' => 4, 'cellpadding' => 1));
 
-  $table->add('text', Q($the_list[3]));
-  $table->add('text', Q($the_list[4]));
-  $table->add('text', Q($the_list[5]));
-  $table->add('text', Q($the_list[6]));
+  $table->add('title', Q($the_list[3]));
+  $table->add('title', Q($the_list[4]));
+  $table->add('title', Q($the_list[5]));
+  $table->add('title', Q($the_list[6]));
   $idx_tab = 7;
   $red_ratio = $rcmail->config->get('foldermaintenance_red_ratio');
   for ($i = 0; $i < $the_list[2]; $i++) {
