@@ -47,6 +47,13 @@ table.quota
   width: 100%;
 }
 
+td.title
+{
+  background-color:#c3c3c3;
+  text-align: left;
+  border: 1px solid black;
+}
+
 td.text
 {
   text-align: left;

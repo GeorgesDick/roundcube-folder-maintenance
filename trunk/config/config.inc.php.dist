@@ -4,6 +4,6 @@
 $rcmail_config['foldermaintenance_max_days'] = 120;
 $rcmail_config['foldermaintenance_red_ratio'] = 4;
 
-// Folder list (comma separated)
-$rcmail_config['foldermaintenance_startup_folders'] = "Trash,Sent,spam-mail";
+// Comma-separated folder list (Trash + sent messages)
+$rcmail_config['foldermaintenance_startup_folders'] = "Trash,Sent";
 ?>
