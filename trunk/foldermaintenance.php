@@ -64,9 +64,12 @@ class foldermaintenance extends rcube_plugin
  */
   function foldermaintenance_startup(){
     $rcmail = rcmail::get_instance();
-    if (strcmp ('geo',$rcmail->user->data['username'])) {// !!!
+/* !!!
+    // You can set an account name as debug account, if you want to test this plugin
+    if (strcmp ('debug_account_name',$rcmail->user->data['username'])) {// !!!
       $rcmail->output->redirect(array('_action' => '', '_mbox' => 'INBOX')); // !!!
       }
+!!! */
     $folder_list = $rcmail->config->get('foldermaintenance_startup_folders');
     $folder_array = explode (',', $folder_list);
     foreach ($folder_array as $folder) {
