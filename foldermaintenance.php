@@ -3,6 +3,7 @@
 /**
  * Folder Maintenance (Manual or automatic old messages cleanup)
  *
+ * @uses	rcube_plugin
  * @file foldermaintenance.php
  * @version 0.9 - 30.01.2011
  * @author Georges DICK
@@ -52,81 +53,20 @@ class foldermaintenance extends rcube_plugin
  */
   function login_after($args){
     $rcmail = rcmail::get_instance();
-    $rcmail->output->redirect(array('_action' => 'plugin.foldermaintenance', '_task' => 'mail'));
-    die;
-  }
-  
- /**
- *
- * @author Georges DICK
- * @brief Parameters tab display function
- *
- */
-  function foldermaintenance_startup(){
-    $rcmail = rcmail::get_instance();
 /* !!!
     // You can set an account name as debug account, if you want to test this plugin
-    if (strcmp ('debug_account_name',$rcmail->user->data['username'])) {// !!!
-      $rcmail->output->redirect(array('_action' => '', '_mbox' => 'INBOX')); // !!!
-      }
+    if (!strcmp ('debug_account_name',$rcmail->user->data['username'])) {// !!!
 !!! */
     $folder_list = $rcmail->config->get('foldermaintenance_startup_folders');
     $folder_array = explode (',', $folder_list);
     foreach ($folder_array as $folder) {
       $this->foldermaintenance_clean_folder ($folder);
     }
-    $rcmail->output->redirect(array('_action' => '', '_mbox' => 'INBOX'));
-  }
-
- /* !!!
-  function foldermaintenance_html_foldermaintenance_message($args){
-    $the_list = $this->foldermaintenance_return_list();
-    $rcmail = rcmail::get_instance();
-    $the_user = $rcmail->user->data['username'];
-    $max_days = $rcmail->config->get('foldermaintenance_max_days');
-  
-    $content = 'Coucou a ' . $the_user . ' dans le nouveau plugin.<hr />';
-  
-    $return_table[] = $this->gettext('action');
-    $return_table[] = $rcmail->config->get('foldermaintenance_max_days');
-    // Temporary value for the number of folders
-    $return_table[] = 0;
-  
-    // Table titles
-    $return_table[] = $this->gettext('folder_name');
-    $return_table[] = $this->gettext('total_messages');
-    $return_table[] = $this->gettext('old_messages');
-    $return_table[] = $this->gettext('cleanup');
-  
-    $page_size = $rcmail->config->get ('pagesize');
-    $content .= 'La page fait ' . $page_size . ' messages<br />';
-  
-    $idx_tab = 7;
-    $red_ratio = $rcmail->config->get('foldermaintenance_red_ratio');
-    for ($i = 0; $i < $the_list[2]; $i++) {
-      $folder_name = $the_list[$idx_tab++];
-      $nb_tot = $the_list[$idx_tab++];
-      $nb_old = $the_list[$idx_tab++];
-  
-      if (!strcmp ($nb_tot,$this->gettext('empty')))
-        $content .= $folder_name . ':' . $nb_tot . '<br />';
-      else
-        $content .= $folder_name . ':' . $nb_tot . ' messages<br />';
-  
-      if ($nb_tot > 0) {
-        $content .= 'Total : ' . $nb_tot . ' dont ' . $nb_old . ' de plus de ' . $max_days . ' jours';
-        }
-      $content .= '<hr />';
+/* !!!
       }
-  
-    $foldermaintenance  = '<fieldset><legend>' . $this->gettext('foldermaintenance') . '</legend>';
-    $foldermaintenance .= $content;
-    $foldermaintenance .= '</fieldset>';  
-    $args['content'] = $foldermaintenance;
-    return $args;
-    }
 !!! */
-
+  }
+  
  /**
  *
  * @author Georges DICK
