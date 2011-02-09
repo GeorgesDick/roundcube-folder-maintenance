@@ -141,6 +141,7 @@ class foldermaintenance extends rcube_plugin
   $table->add('title', Q($the_list[6]));
   $idx_tab = 7;
   $red_ratio = $rcmail->config->get('foldermaintenance_red_ratio');
+  $nb_days = $rcmail->config->get('foldermaintenance_max_days');
   for ($i = 0; $i < $the_list[2]; $i++) {
     $folder_name = $the_list[$idx_tab++];
     $nb_tot = $the_list[$idx_tab++];
@@ -163,7 +164,7 @@ class foldermaintenance extends rcube_plugin
       $button_text = '';
     $table->add('button', $button_text);
     }
-  return html::tag('h4', null, Q($this->gettext('folders_of') . ' ' . $user->get_username())) . '<form id="foldermaintenance_clean" action="#foldermaintenance_clean">' . $table->show() . '<input type="button" value="'. Q($this->gettext('action')) . '" onClick="javascript:val_form()" id="submit" class="button" /></form>';
+  return html::tag('h4', null, Q($this->gettext('folders_of') . ' ' . $user->get_username())) . Q($this->gettext('max_days_message')) . ' ' . $nb_days . '<hr /><form id="foldermaintenance_clean" action="#foldermaintenance_clean">' . $table->show() . '<input type="button" value="'. Q($this->gettext('action')) . '" onClick="javascript:val_form()" id="submit" class="button" /></form>';
   }
 
  /**
