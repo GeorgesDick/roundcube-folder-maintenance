@@ -84,6 +84,17 @@ class foldermaintenance extends rcube_plugin
  /**
  *
  * @author Georges DICK
+ * @brief Empty function needed by some RoundCube API versions
+ *
+ */
+  function foldermaintenance_startup(){
+  $rcmail = rcmail::get_instance();
+  $rcmail->output->send("foldermaintenance.foldermaintenance");
+  }
+
+ /**
+ *
+ * @author Georges DICK
  * @brief Prefs save function
  *
  */
