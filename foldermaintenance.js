@@ -9,7 +9,7 @@
  *
  */
 
-// Show foldermaintenance plugin script
+// Show foldermaintenance plugin button
 if (window.rcmail) {
   rcmail.addEventListener('init', function(evt) {
     var tab = $('<span>').attr('id', 'settingstabpluginfoldermaintenance').addClass('tablink');

@@ -38,7 +38,7 @@ class foldermaintenance extends rcube_plugin
     $this->register_action('plugin.foldermaintenance_send_list', array($this, 'foldermaintenance_send_list'));
     $this->register_action('plugin.foldermaintenance_clean', array($this, 'foldermaintenance_clean'));
     $this->include_script('foldermaintenance.js');
-    $this->register_action('plugin.foldermaintenance', array($this, 'foldermaintenance_startup'));        
+    $this->register_action('plugin.foldermaintenance', array($this, 'foldermaintenance_startup'));
 //    $this->add_hook('template_object_foldermaintenance_message', array($this, 'foldermaintenance_html_foldermaintenance_message'));
     $this->add_hook('preferences_list', array($this, 'prefs_table'));
     $this->add_hook('preferences_save', array($this, 'save_prefs'));
@@ -53,18 +53,11 @@ class foldermaintenance extends rcube_plugin
  */
   function login_after($args){
     $rcmail = rcmail::get_instance();
-/* !!!
-    // You can set an account name as debug account, if you want to test this plugin
-    if (!strcmp ('debug_account_name',$rcmail->user->data['username'])) {// !!!
-!!! */
     $folder_list = $rcmail->config->get('foldermaintenance_startup_folders');
     $folder_array = explode (',', $folder_list);
     foreach ($folder_array as $folder) {
       $this->foldermaintenance_clean_folder ($folder);
     }
-/* !!!
-      }
-!!! */
   }
   
  /**
@@ -84,7 +77,7 @@ class foldermaintenance extends rcube_plugin
  /**
  *
  * @author Georges DICK
- * @brief Empty function needed by some RoundCube API versions
+ * @brief Function to call the foldermaintenance template
  *
  */
   function foldermaintenance_startup(){
