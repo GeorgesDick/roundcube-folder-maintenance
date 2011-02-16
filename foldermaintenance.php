@@ -173,10 +173,8 @@ class foldermaintenance extends rcube_plugin
   $list_boxes = $rcmail->imap->list_mailboxes();
   foreach ($list_boxes as $folder) {
     $checkbox_name = '_clean_' . $folder;
-// write_log('foldermaintenance', 'test de la checkbox "' . $checkbox_name . '"'); // !!!
     $checkbox_value = get_input_value($checkbox_name, RCUBE_INPUT_POST);
     if (!strcmp ($checkbox_value,'clean')) {
-//      write_log('foldermaintenance', 'On doit nettoyer ' . $folder); // !!!
       $this->foldermaintenance_clean_folder ($folder);
       }
     }
